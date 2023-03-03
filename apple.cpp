@@ -34,8 +34,56 @@ class pimpl {
     return tone_unit;
   }
 
+  static OSStatus render(void *ref, AudioUnitRenderActionFlags * /*flags*/,
+                         const AudioTimeStamp * /*timestamp*/,
+                         UInt32 /*bus_number*/, UInt32 number_frames,
+                         AudioBufferList *data) {
+    auto *f_data = static_cast<float *>(data->mBuffers[0].mData);
+    static_cast<os_streamer *>(ref)->fill_buffer(f_data, number_frames);
+    return noErr;
+  }
+
+  bool set_render_callback(os_streamer *s) {
+    AURenderCallbackStruct rcs;
+    rcs.inputProc = render;
+    rcs.inputProcRefCon = s;
+    return noErr == AudioUnitSetProperty(
+                        m_tone_unit, kAudioUnitProperty_SetRenderCallback,
+                        kAudioUnitScope_Input, 0, &rcs, sizeof(rcs));
+  }
+
+  bool set_format() {
+    constexpr const auto bits_per_byte = 8;
+
+    AudioStreamBasicDescription sbd;
+    sbd.mSampleRate = os_streamer::rate;
+    sbd.mFormatID = kAudioFormatLinearPCM;
+    sbd.mFormatFlags =
+        static_cast<unsigned>(kAudioFormatFlagsNativeFloatPacked) |
+        kAudioFormatFlagIsNonInterleaved;
+    sbd.mBytesPerPacket = sizeof(float);
+    sbd.mFramesPerPacket = 1;
+    sbd.mBytesPerFrame = sizeof(float) / 1;
+    sbd.mChannelsPerFrame = os_streamer::channels;
+    sbd.mBitsPerChannel = sizeof(float) * bits_per_byte;
+    return noErr ==
+           AudioUnitSetProperty(m_tone_unit, kAudioUnitProperty_StreamFormat,
+                                kAudioUnitScope_Input, 0, &sbd, sizeof(sbd));
+  }
+
+  bool init() { return AudioUnitInitialize(m_tone_unit) == noErr; }
+
 public:
-  pimpl() : m_tone_unit{create_tone_unit()} {}
+  pimpl(os_streamer *s) : m_tone_unit{create_tone_unit()} {
+    if (!set_render_callback(s))
+      return;
+    if (!set_format())
+      return;
+    if (!init())
+      return;
+
+    AudioOutputUnitStart(m_tone_unit);
+  }
   ~pimpl() {
     if (m_tone_unit == nullptr)
       return;
@@ -46,6 +94,6 @@ public:
   }
 };
 
-os_streamer::os_streamer() : m_pimpl{new pimpl{}} {}
+os_streamer::os_streamer() : m_pimpl{new pimpl{this}} {}
 os_streamer::~os_streamer() = default;
 } // namespace siaudio
