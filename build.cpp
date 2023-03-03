@@ -8,9 +8,17 @@ int main(int argc, char **argv) {
 
   auto m = all->add_unit<per_feat<mod>>("siaudio");
   m->for_feature(android_ndk).add_wsdep("hai", hai());
-  m->for_feature(objective_c).add_wsdep("hai", hai());
   m->for_feature(windows_api).add_wsdep("hai", hai());
   m->for_feature(webassembly).add_wsdep("hai", hai());
+
+  auto &objc = m->for_feature(objective_c);
+  objc.add_wsdep("hai", hai());
+  objc.add_impl("apple");
+  objc.add_framework("AudioToolbox");
+
+  auto poc = all->add_unit<tool>("poc");
+  poc->add_ref(m);
+  poc->add_unit<>("poc");
 
   return run_main(all, argc, argv);
 }

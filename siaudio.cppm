@@ -2,25 +2,23 @@ export module siaudio;
 import hai;
 
 namespace siaudio {
-struct producer {
-  virtual ~producer() = default;
-  virtual void fill_buffer(float *data, unsigned samples) = 0;
+class pimpl;
+class os_streamer {
+  hai::uptr<pimpl> m_pimpl;
+
+protected:
+  os_streamer();
+  ~os_streamer();
 };
 
-class streamer {
-  hai::uptr<producer> m_producer;
+export template <typename Producer> class streamer : os_streamer {
+  Producer m_prod;
 
 public:
   static constexpr const auto channels = 1;
   static constexpr const auto rate = 44100;
 
-  virtual ~streamer() = default;
-
-  [[nodiscard]] constexpr const auto &producer() const noexcept {
-    return m_producer;
-  }
-  [[nodiscard]] constexpr auto &producer() noexcept { return m_producer; }
-
-  static hai::uptr<streamer> create();
+  explicit streamer(Producer &&p) : os_streamer{}, m_prod{p} {}
 };
+
 } // namespace siaudio
