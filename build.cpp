@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
   objc.add_impl("apple");
   objc.add_framework("AudioToolbox");
 
-  auto poc = all->add_unit<tool>("poc");
+  auto poc = all->add_unit<app>("poc");
   poc->add_ref(m);
   poc->add_unit<>("poc");
 
