@@ -7,7 +7,10 @@ int main(int argc, char **argv) {
   auto all = unit::create<seq>("all");
 
   auto m = all->add_unit<per_feat<mod>>("siaudio");
-  m->for_feature(webassembly).add_wsdep("hai", hai());
+
+  auto &wasm = m->for_feature(webassembly);
+  wasm.add_wsdep("hai", hai());
+  wasm.add_feat<setup_js>("siaudio");
 
   auto &droid = m->for_feature(android_ndk);
   droid.add_wsdep("hai", hai());
