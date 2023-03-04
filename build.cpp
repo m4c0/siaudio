@@ -7,8 +7,13 @@ int main(int argc, char **argv) {
   auto all = unit::create<seq>("all");
 
   auto m = all->add_unit<per_feat<mod>>("siaudio");
-  m->for_feature(android_ndk).add_wsdep("hai", hai());
   m->for_feature(webassembly).add_wsdep("hai", hai());
+
+  auto &droid = m->for_feature(android_ndk);
+  droid.add_wsdep("hai", hai());
+  droid.add_impl("android");
+  droid.add_unit<>("android_audio");
+  droid.add_system_library("aaudio");
 
   auto &objc = m->for_feature(objective_c);
   objc.add_wsdep("hai", hai());
