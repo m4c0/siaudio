@@ -6,6 +6,7 @@
       (function() {
         ecow({ base_dir: "out/wasm" }).then(obj => {
           obj.start();
+          obj.exports.blip();
         });
       })();
     </script>

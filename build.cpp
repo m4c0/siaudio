@@ -33,6 +33,7 @@ int main(int argc, char **argv) {
   auto poc = all->add_unit<app>("poc");
   poc->add_ref(m);
   poc->add_unit<>("poc");
+  poc->add_feat<export_symbol>("blip");
 
   return run_main(all, argc, argv);
 }

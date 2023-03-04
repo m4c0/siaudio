@@ -14,3 +14,10 @@ extern "C" decltype(&siaudio_params)
 siaudio_fill_buffer(siaudio::os_streamer *str) {
   return &siaudio_params;
 }
+
+namespace siaudio {
+struct pimpl {};
+
+os_streamer::os_streamer() {}
+os_streamer::~os_streamer() {}
+} // namespace siaudio
