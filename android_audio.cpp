@@ -12,12 +12,14 @@ static aaudio_data_callback_result_t callback(AAudioStream * /*stream*/,
   str->fill_buffer(f_data, f_len);
   return AAUDIO_CALLBACK_RESULT_CONTINUE;
 }
+struct aas_deleter {
+  void operator()(AAudioStreamBuilder *b) { AAudioStreamBuilder_delete(b); }
+};
 
 extern "C" AAudioStream *siaudio_setup_aas(siaudio::os_streamer *str) {
   AAudioStreamBuilder *builder{};
   AAudio_createStreamBuilder(&builder);
-  // hai::holder<AAudioStreamBuilder, AAudioStreamBuilder_delete>
-  // guard{builder};
+  hai::holder<AAudioStreamBuilder, aas_deleter> guard{builder};
 
   AAudioStreamBuilder_setSharingMode(builder, AAUDIO_SHARING_MODE_EXCLUSIVE);
   AAudioStreamBuilder_setPerformanceMode(builder,
