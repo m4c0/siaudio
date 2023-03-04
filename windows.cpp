@@ -3,6 +3,7 @@ module;
 #include <xaudio2.h>
 
 module siaudio;
+import hai;
 
 namespace siaudio {
 struct destroyer {
@@ -11,9 +12,10 @@ struct destroyer {
 
 class pimpl : public IXAudio2VoiceCallback {
   Microsoft::WRL::ComPtr<IXAudio2> m_xa2{};
-  hai::uptr<IXAudio2MasteringVoice, destroyer> m_main_voice{};
-  hai::uptr<IXAudio2SourceVoice, destroyer> m_src_voice{};
+  hai::holder<IXAudio2MasteringVoice, destroyer> m_main_voice{};
+  hai::holder<IXAudio2SourceVoice, destroyer> m_src_voice{};
   os_streamer *m_owner;
+  float m_buffer[os_streamer::rate];
 
 public:
   pimpl(os_streamer *o) : m_owner{o} {
@@ -32,6 +34,7 @@ public:
     }
 
     constexpr const auto channels = os_streamer::channels;
+    constexpr const auto rate = os_streamer::rate;
     constexpr const auto bits_per_sample = 32; // IEEE_FORMAT
     constexpr const auto alignment = (channels * bits_per_sample) / 8;
     WAVEFORMATEX wfx{};
@@ -49,7 +52,7 @@ public:
       return;
     }
 
-    if (FAILED(hr = sv->Start())) {
+    if (FAILED(hr = (*m_src_voice)->Start())) {
       return;
     }
   }
@@ -61,14 +64,16 @@ public:
   void OnVoiceError(void *pBufferContext, HRESULT Error) noexcept override {}
   void OnVoiceProcessingPassEnd() noexcept override {}
   void OnVoiceProcessingPassStart(UINT32 BytesRequired) noexcept override {
-    m_buffer.resize(BytesRequired / sizeof(float));
-    m_owner->fill_buffer(m_buffer, X);
+    if (BytesRequired > sizeof(m_buffer))
+      BytesRequired = sizeof(m_buffer);
+
+    m_owner->fill_buffer(m_buffer, BytesRequired / sizeof(float));
 
     XAUDIO2_BUFFER buf{
         .AudioBytes = BytesRequired,
-        .pAudioData = reinterpret_cast<BYTE *>(m_buffer.data()), // NOLINT
+        .pAudioData = reinterpret_cast<BYTE *>(m_buffer), // NOLINT
     };
-    m_src_voice->SubmitSourceBuffer(&buf);
+    (*m_src_voice)->SubmitSourceBuffer(&buf);
   }
 };
 

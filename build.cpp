@@ -18,6 +18,7 @@ int main(int argc, char **argv) {
   auto &win = m->for_feature(windows_api);
   win.add_wsdep("hai", hai());
   win.add_impl("windows");
+  win.add_system_library("ole32");
 
   auto poc = all->add_unit<app>("poc");
   poc->add_ref(m);
