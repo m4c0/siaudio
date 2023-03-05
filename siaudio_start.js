@@ -1,5 +1,4 @@
-function (obj) {
-  var streamer;
+function (pimpl) {
   var audioContext;
 
   function audio_init() {
@@ -10,19 +9,17 @@ function (obj) {
   function play() {
     if (!audioContext) audio_init();
 
-    const mem_buf = obj.instance.exports.memory.buffer;
+    ecow_exports.siaudio_fill_buffer(pimpl);
 
-    const param_ptr = obj.instance.exports.siaudio_fill_buffer(streamer);
-    const params = new Uint32Array(mem_buf, param_ptr, 4 * 4);
-
-    const channels = params[0];
-    const rate = params[1];
-    const buf_size = params[2];
-    const buf_ptr = params[3];
+    const pimpl_size = 4 * 4;
+    const params = new Uint32Array(ecow_buffer, pimpl, 4);
+    const channels = params[1];
+    const rate = params[2];
+    const buf_size = params[3];
 
     const audioBuffer = audioContext.createBuffer(channels, buf_size, rate);
 
-    const view = new Float32Array(mem_buf, buf_ptr, buf_size);
+    const view = new Float32Array(ecow_buffer, pimpl + pimpl_size, buf_size);
     audioBuffer.getChannelData(0).set(view);
 
     const src = audioContext.createBufferSource();
@@ -38,5 +35,5 @@ function (obj) {
   // TODO: write down why this is necessary and how it impacts audio timestamps
   document.body.onclick = () => {
     if (audioContext != null) audioContext.resume();
-  };
+  }
 }

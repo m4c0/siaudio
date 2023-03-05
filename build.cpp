@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
   auto &wasm = m->for_feature(webassembly);
   wasm.add_wsdep("hai", hai());
   wasm.add_feat<export_symbol>("siaudio_fill_buffer");
-  wasm.add_feat<setup_js>("siaudio");
+  wasm.add_feat<inline_js>("siaudio_start", "");
   wasm.add_impl("wasm");
 
   auto &droid = m->for_feature(android_ndk);
