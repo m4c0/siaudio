@@ -23,6 +23,11 @@ export template <typename Producer> class streamer : os_streamer {
 public:
   explicit streamer(Producer &&p) : os_streamer{}, m_prod{p} {}
 
+  [[nodiscard]] constexpr const auto &producer() const noexcept {
+    return m_prod;
+  }
+  [[nodiscard]] constexpr auto &producer() noexcept { return m_prod; }
+
   void fill_buffer(float *f, unsigned num_samples) override {
     m_prod(f, num_samples);
   }
