@@ -4,7 +4,8 @@ extern "C" void siaudio_start(siaudio::pimpl *);
 
 namespace siaudio {
 class pimpl {
-  static constexpr const unsigned desired_buf_size = os_streamer::rate / 10;
+  // TODO: receive this from JS. "128" is the expected standard, but who knows?
+  static constexpr const unsigned desired_buf_size = 128;
 
   os_streamer *m_str;
   unsigned m_channels = os_streamer::channels;
