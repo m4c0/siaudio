@@ -1,6 +1,7 @@
 module siaudio;
 
-extern "C" void siaudio_start(siaudio::pimpl *);
+extern "C" void __attribute__((import_name("siaudio_start")))
+siaudio_start(siaudio::pimpl *);
 
 namespace siaudio {
 class pimpl {
@@ -23,4 +24,7 @@ os_streamer::os_streamer() : m_pimpl{new pimpl{this}} {}
 os_streamer::~os_streamer() = default;
 } // namespace siaudio
 
-extern "C" void siaudio_fill_buffer(siaudio::pimpl *p) { p->fill_buffer(); }
+extern "C" void __attribute__((export_name("siaudio_fill_buffer")))
+siaudio_fill_buffer(siaudio::pimpl *p) {
+  p->fill_buffer();
+}
