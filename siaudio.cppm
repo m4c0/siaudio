@@ -1,5 +1,6 @@
 export module siaudio;
 import hai;
+import traits;
 
 namespace siaudio {
 class pimpl;
@@ -21,7 +22,7 @@ export template <typename Producer> class streamer : os_streamer {
   Producer m_prod;
 
 public:
-  explicit streamer(Producer &&p) : os_streamer{}, m_prod{p} {}
+  explicit streamer(Producer &&p) : os_streamer{}, m_prod{traits::move(p)} {}
 
   [[nodiscard]] constexpr const auto &producer() const noexcept {
     return m_prod;
