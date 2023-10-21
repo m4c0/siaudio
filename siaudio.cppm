@@ -16,6 +16,9 @@ public:
   static constexpr const auto rate = 44100;
 
   virtual void fill_buffer(float *f, unsigned num_samples) {}
+
+  void start();
+  void stop();
 };
 
 export template <typename Producer> class streamer : os_streamer {

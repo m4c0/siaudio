@@ -75,8 +75,13 @@ public:
     };
     (*m_src_voice)->SubmitSourceBuffer(&buf);
   }
+
+  void start() { (*m_src_voice)->Start(); }
+  void stop() { (*m_src_voice)->Stop(); }
 };
 
 os_streamer::os_streamer() : m_pimpl{new pimpl{this}} {}
 os_streamer::~os_streamer() = default;
+void os_streamer::start() { m_pimpl->start(); }
+void os_streamer::stop() { m_pimpl->stop(); }
 } // namespace siaudio

@@ -92,8 +92,13 @@ public:
     AudioUnitUninitialize(m_tone_unit);
     AudioComponentInstanceDispose(m_tone_unit);
   }
+
+  void start() { AudioOutputUnitStart(m_tone_unit); }
+  void stop() { AudioOutputUnitStop(m_tone_unit); }
 };
 
 os_streamer::os_streamer() : m_pimpl{new pimpl{this}} {}
 os_streamer::~os_streamer() = default;
+void os_streamer::start() { m_pimpl->start(); }
+void os_streamer::stop() { m_pimpl->stop(); }
 } // namespace siaudio
