@@ -21,6 +21,29 @@ public:
   void stop();
 };
 
+export class timed_streamer : siaudio::os_streamer {
+  volatile unsigned m_index{};
+  unsigned m_ref_t{};
+
+  [[nodiscard]] constexpr float time(unsigned idx) const noexcept {
+    constexpr const auto frate = static_cast<float>(siaudio::os_streamer::rate);
+    return static_cast<float>(idx) / frate;
+  }
+
+protected:
+  void fill_buffer(float *buf, unsigned len) override {
+    auto idx = m_index;
+    for (auto i = 0; i < len; ++i, ++idx) {
+      *buf++ = vol_at(time(idx - m_ref_t));
+    }
+    m_index = idx;
+  }
+
+  void reset_ref() { m_ref_t = m_index; }
+
+  virtual constexpr float vol_at(float t) const noexcept = 0;
+};
+
 export template <typename Producer> class streamer : os_streamer {
   Producer m_prod;
 
