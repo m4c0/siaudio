@@ -47,11 +47,11 @@ protected:
 
 #ifdef LECO_TARGET_ANDROID
 #pragma leco add_impl android android_audio
-#pragma leco add_system_ilbrary aaudio
+#pragma leco add_library aaudio
 #elif LECO_TARGET_APPLE
 #pragma leco add_impl apple
 #pragma leco add_framework AudioToolbox
 #elif LECO_TARGET_WINDOWS
 #pragma leco add_impl windows
-#pragma leco add_system_library ole32
+#pragma leco add_library ole32
 #endif
