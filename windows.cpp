@@ -56,6 +56,7 @@ public:
       return;
     }
   }
+  virtual ~pimpl() = default;
 
   void OnBufferEnd(void *pBufferContext) noexcept override {}
   void OnBufferStart(void *pBufferContext) noexcept override {}
