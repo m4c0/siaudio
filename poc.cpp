@@ -7,16 +7,23 @@ import siaudio;
 #define EXPORT
 #endif
 
-extern "C" unsigned EXPORT blip() {
-  static volatile unsigned gens = 0;
-  static auto s = siaudio::streamer{[&](float *data, unsigned samples) {
-    float mult = (gens < 1000) ? gens / 1000.0f : 1.0f;
+class audio : public siaudio::os_streamer {
+  volatile unsigned m_gens{};
+
+public:
+  void fill_buffer(float *data, unsigned samples) override {
+    float mult = (m_gens < 1000) ? m_gens / 1000.0f : 1.0f;
     for (unsigned i = 0; i < samples; ++i) {
-      data[i] = mult * ((gens / 20) % 2) - 0.5f;
-      gens = gens + 1;
+      data[i] = mult * ((m_gens / 20) % 2) - 0.5f;
+      m_gens = m_gens + 1;
     }
-  }};
-  return gens;
+  }
+  unsigned blip() const noexcept { return m_gens; }
+};
+
+extern "C" unsigned EXPORT blip() {
+  static audio s{};
+  return s.blip();
 }
 
 int main() {
