@@ -9,7 +9,7 @@ export class os_streamer {
   float m_rate;
 
 protected:
-  os_streamer(unsigned rate = 44100);
+  explicit os_streamer(unsigned rate = 44100);
   ~os_streamer();
 
   [[nodiscard]] constexpr auto frate() const noexcept { return m_rate; }
@@ -32,6 +32,8 @@ export class timed_streamer : siaudio::os_streamer {
   }
 
 protected:
+  using os_streamer::os_streamer;
+
   void fill_buffer(float *buf, unsigned len) override {
     auto idx = m_index;
     for (auto i = 0; i < len; ++i, ++idx) {
@@ -46,16 +48,19 @@ protected:
 };
 
 export class ring_buffered_stream : public siaudio::os_streamer {
-  static constexpr const auto buf_len = 441000;
-  hai::array<float> m_cbuf{buf_len};
+  hai::array<float> m_cbuf;
   volatile unsigned m_rp = 0;
   volatile unsigned m_wp = 0;
 
 public:
+  explicit ring_buffered_stream(unsigned rate = 44100)
+      : os_streamer{rate}
+      , m_cbuf{rate * 10} {}
+
   void fill_buffer(float *f, unsigned num_samples) override {
     while (num_samples > 0 && m_rp != m_wp) {
       *f++ = m_cbuf[m_rp];
-      m_rp = (m_rp + 1) % buf_len;
+      m_rp = (m_rp + 1) % m_cbuf.size();
       num_samples--;
     }
   }
@@ -63,7 +68,7 @@ public:
   void push_frame(float *f, unsigned num_samples) {
     while (num_samples > 0 && m_rp != m_wp + 1) {
       m_cbuf[m_wp] = *f++;
-      m_wp = (m_wp + 1) % buf_len;
+      m_wp = (m_wp + 1) % m_cbuf.size();
       num_samples--;
     }
   }
