@@ -7,6 +7,9 @@ import siaudio;
 #define EXPORT
 #endif
 
+// TODO: support for multiple sources
+// This might be a simple case of support for "multiple streamers"
+
 static constexpr const auto rate = 44100;
 
 class audio : public siaudio::os_streamer {
