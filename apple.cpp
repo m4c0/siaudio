@@ -52,11 +52,11 @@ class pimpl {
                         kAudioUnitScope_Input, 0, &rcs, sizeof(rcs));
   }
 
-  bool set_format() {
+  bool set_format(unsigned rate) {
     constexpr const auto bits_per_byte = 8;
 
     AudioStreamBasicDescription sbd;
-    sbd.mSampleRate = os_streamer::rate;
+    sbd.mSampleRate = rate;
     sbd.mFormatID = kAudioFormatLinearPCM;
     sbd.mFormatFlags =
         static_cast<unsigned>(kAudioFormatFlagsNativeFloatPacked) |
@@ -74,10 +74,10 @@ class pimpl {
   bool init() { return AudioUnitInitialize(m_tone_unit) == noErr; }
 
 public:
-  pimpl(os_streamer *s) : m_tone_unit{create_tone_unit()} {
+  pimpl(os_streamer *s, unsigned rate) : m_tone_unit{create_tone_unit()} {
     if (!set_render_callback(s))
       return;
-    if (!set_format())
+    if (!set_format(rate))
       return;
     if (!init())
       return;
@@ -97,7 +97,9 @@ public:
   void stop() { AudioOutputUnitStop(m_tone_unit); }
 };
 
-os_streamer::os_streamer() : m_pimpl{new pimpl{this}} {}
+os_streamer::os_streamer(unsigned rate)
+    : m_pimpl{new pimpl{this, rate}}
+    , m_rate{static_cast<float>(rate)} {}
 os_streamer::~os_streamer() = default;
 void os_streamer::start() { m_pimpl->start(); }
 void os_streamer::stop() { m_pimpl->stop(); }

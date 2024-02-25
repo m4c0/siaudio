@@ -6,16 +6,18 @@ namespace siaudio {
 class pimpl;
 export class os_streamer {
   hai::uptr<pimpl> m_pimpl;
+  float m_rate;
 
 protected:
-  os_streamer();
+  os_streamer(unsigned rate = 44100);
   ~os_streamer();
+
+  [[nodiscard]] constexpr auto frate() const noexcept { return m_rate; }
 
 public:
   static constexpr const auto channels = 1;
-  static constexpr const auto rate = 44100;
 
-  virtual void fill_buffer(float *f, unsigned num_samples) {}
+  virtual void fill_buffer(float *f, unsigned num_samples) = 0;
 
   void start();
   void stop();
@@ -26,8 +28,7 @@ export class timed_streamer : siaudio::os_streamer {
   unsigned m_ref_t{};
 
   [[nodiscard]] constexpr float time(unsigned idx) const noexcept {
-    constexpr const auto frate = static_cast<float>(siaudio::os_streamer::rate);
-    return static_cast<float>(idx) / frate;
+    return static_cast<float>(idx) / frate();
   }
 
 protected:

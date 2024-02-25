@@ -7,10 +7,14 @@ import siaudio;
 #define EXPORT
 #endif
 
+static constexpr const auto rate = 44100;
+
 class audio : public siaudio::os_streamer {
   volatile unsigned m_gens{};
 
 public:
+  audio() : os_streamer{rate} {}
+
   void fill_buffer(float *data, unsigned samples) override {
     float mult = (m_gens < 1000) ? m_gens / 1000.0f : 1.0f;
     for (unsigned i = 0; i < samples; ++i) {
@@ -27,6 +31,7 @@ extern "C" unsigned EXPORT blip() {
 }
 
 int main() {
-  while (blip() < 44100) {
+  // play for 1 second
+  while (blip() < rate) {
   }
 }

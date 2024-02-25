@@ -15,10 +15,10 @@ class pimpl : public IXAudio2VoiceCallback {
   hai::holder<IXAudio2MasteringVoice, destroyer> m_main_voice{};
   hai::holder<IXAudio2SourceVoice, destroyer> m_src_voice{};
   os_streamer *m_owner;
-  float m_buffer[os_streamer::rate];
+  hai::array<float> m_buffer;
 
 public:
-  pimpl(os_streamer *o) : m_owner{o} {
+  pimpl(os_streamer *o, unsigned rate) : m_owner{o}, m_buffer{rate} {
     HRESULT hr{};
     if (FAILED(hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED))) {
       return;
@@ -34,7 +34,6 @@ public:
     }
 
     constexpr const auto channels = os_streamer::channels;
-    constexpr const auto rate = os_streamer::rate;
     constexpr const auto bits_per_sample = 32; // IEEE_FORMAT
     constexpr const auto alignment = (channels * bits_per_sample) / 8;
     WAVEFORMATEX wfx{};
@@ -65,14 +64,14 @@ public:
   void OnVoiceError(void *pBufferContext, HRESULT Error) noexcept override {}
   void OnVoiceProcessingPassEnd() noexcept override {}
   void OnVoiceProcessingPassStart(UINT32 BytesRequired) noexcept override {
-    if (BytesRequired > sizeof(m_buffer))
-      BytesRequired = sizeof(m_buffer);
+    if (BytesRequired > m_buffer.size() * sizeof(float))
+      BytesRequired = m_buffer.size() * sizeof(float);
 
-    m_owner->fill_buffer(m_buffer, BytesRequired / sizeof(float));
+    m_owner->fill_buffer(m_buffer.begin(), BytesRequired / sizeof(float));
 
     XAUDIO2_BUFFER buf{
         .AudioBytes = BytesRequired,
-        .pAudioData = reinterpret_cast<BYTE *>(m_buffer), // NOLINT
+        .pAudioData = reinterpret_cast<BYTE *>(m_buffer.begin()), // NOLINT
     };
     (*m_src_voice)->SubmitSourceBuffer(&buf);
   }
@@ -81,7 +80,9 @@ public:
   void stop() { (*m_src_voice)->Stop(); }
 };
 
-os_streamer::os_streamer() : m_pimpl{new pimpl{this}} {}
+os_streamer::os_streamer(unsigned rate)
+    : m_pimpl{new pimpl{this, rate}}
+    , m_rate{static_cast<float>(rate)} {}
 os_streamer::~os_streamer() = default;
 void os_streamer::start() { m_pimpl->start(); }
 void os_streamer::stop() { m_pimpl->stop(); }
