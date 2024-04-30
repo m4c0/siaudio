@@ -91,4 +91,6 @@ public:
 #elif LECO_TARGET_WINDOWS
 #pragma leco add_impl windows
 #pragma leco add_library ole32
+#elif LECO_TARGET_LINUX
+#pragma leco add_impl linux
 #endif
