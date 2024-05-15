@@ -30,7 +30,7 @@ int main() {
   }
 
   siaudio::filler(fill_buffer_2);
-  while (time.millis() < 1000) {
+  while (time.millis() < 2000) {
     // Wait
   }
 }
