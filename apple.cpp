@@ -12,7 +12,7 @@ module;
 module siaudio;
 
 namespace siaudio {
-class pimpl {
+class streamer {
   AudioComponentInstance m_tone_unit;
 
   static AudioComponentInstance create_tone_unit() {
@@ -34,19 +34,19 @@ class pimpl {
     return tone_unit;
   }
 
-  static OSStatus render(void *ref, AudioUnitRenderActionFlags * /*flags*/,
+  static OSStatus render(void * /*ref*/, AudioUnitRenderActionFlags * /*flags*/,
                          const AudioTimeStamp * /*timestamp*/,
                          UInt32 /*bus_number*/, UInt32 number_frames,
                          AudioBufferList *data) {
     auto *f_data = static_cast<float *>(data->mBuffers[0].mData);
-    static_cast<os_streamer *>(ref)->fill_buffer(f_data, number_frames);
+    siaudio::fn(f_data, number_frames);
     return noErr;
   }
 
-  bool set_render_callback(os_streamer *s) {
+  bool set_render_callback() {
     AURenderCallbackStruct rcs;
     rcs.inputProc = render;
-    rcs.inputProcRefCon = s;
+    // rcs.inputProcRefCon = s;
     return noErr == AudioUnitSetProperty(
                         m_tone_unit, kAudioUnitProperty_SetRenderCallback,
                         kAudioUnitScope_Input, 0, &rcs, sizeof(rcs));
@@ -64,7 +64,7 @@ class pimpl {
     sbd.mBytesPerPacket = sizeof(float);
     sbd.mFramesPerPacket = 1;
     sbd.mBytesPerFrame = sizeof(float) / 1;
-    sbd.mChannelsPerFrame = os_streamer::channels;
+    sbd.mChannelsPerFrame = 1;
     sbd.mBitsPerChannel = sizeof(float) * bits_per_byte;
     return noErr ==
            AudioUnitSetProperty(m_tone_unit, kAudioUnitProperty_StreamFormat,
@@ -74,8 +74,8 @@ class pimpl {
   bool init() { return AudioUnitInitialize(m_tone_unit) == noErr; }
 
 public:
-  pimpl(os_streamer *s, unsigned rate) : m_tone_unit{create_tone_unit()} {
-    if (!set_render_callback(s))
+  streamer(unsigned rate) : m_tone_unit{create_tone_unit()} {
+    if (!set_render_callback())
       return;
     if (!set_format(rate))
       return;
@@ -84,7 +84,7 @@ public:
 
     AudioOutputUnitStart(m_tone_unit);
   }
-  ~pimpl() {
+  ~streamer() {
     if (m_tone_unit == nullptr)
       return;
 
@@ -97,10 +97,6 @@ public:
   void stop() { AudioOutputUnitStop(m_tone_unit); }
 };
 
-os_streamer::os_streamer(unsigned rate)
-    : m_pimpl{new pimpl{this, rate}}
-    , m_rate{static_cast<float>(rate)} {}
-os_streamer::~os_streamer() = default;
-void os_streamer::start() { m_pimpl->start(); }
-void os_streamer::stop() { m_pimpl->stop(); }
+streamer_t create(unsigned rate) { return streamer_t{new streamer{rate}}; }
+void deleter::operator()(streamer *s) { delete s; }
 } // namespace siaudio
