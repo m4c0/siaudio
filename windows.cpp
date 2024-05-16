@@ -10,15 +10,14 @@ struct destroyer {
   void operator()(IXAudio2Voice *ptr) { ptr->DestroyVoice(); }
 };
 
-class pimpl : public IXAudio2VoiceCallback {
+class streamer : public IXAudio2VoiceCallback {
   Microsoft::WRL::ComPtr<IXAudio2> m_xa2{};
   hai::holder<IXAudio2MasteringVoice, destroyer> m_main_voice{};
   hai::holder<IXAudio2SourceVoice, destroyer> m_src_voice{};
-  os_streamer *m_owner;
   hai::array<float> m_buffer;
 
 public:
-  pimpl(os_streamer *o, unsigned rate) : m_owner{o}, m_buffer{rate} {
+  streamer(unsigned rate) : m_buffer{rate} {
     HRESULT hr{};
     if (FAILED(hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED))) {
       return;
@@ -33,7 +32,7 @@ public:
       return;
     }
 
-    constexpr const auto channels = os_streamer::channels;
+    constexpr const auto channels = 1;
     constexpr const auto bits_per_sample = 32; // IEEE_FORMAT
     constexpr const auto alignment = (channels * bits_per_sample) / 8;
     WAVEFORMATEX wfx{};
@@ -55,7 +54,7 @@ public:
       return;
     }
   }
-  virtual ~pimpl() = default;
+  virtual ~streamer() = default;
 
   void OnBufferEnd(void *pBufferContext) noexcept override {}
   void OnBufferStart(void *pBufferContext) noexcept override {}
@@ -67,7 +66,7 @@ public:
     if (BytesRequired > m_buffer.size() * sizeof(float))
       BytesRequired = m_buffer.size() * sizeof(float);
 
-    m_owner->fill_buffer(m_buffer.begin(), BytesRequired / sizeof(float));
+    siaudio::fn(m_buffer.begin(), BytesRequired / sizeof(float));
 
     XAUDIO2_BUFFER buf{
         .AudioBytes = BytesRequired,
@@ -80,10 +79,6 @@ public:
   void stop() { (*m_src_voice)->Stop(); }
 };
 
-os_streamer::os_streamer(unsigned rate)
-    : m_pimpl{new pimpl{this, rate}}
-    , m_rate{static_cast<float>(rate)} {}
-os_streamer::~os_streamer() = default;
-void os_streamer::start() { m_pimpl->start(); }
-void os_streamer::stop() { m_pimpl->stop(); }
+streamer_t create(unsigned rate) { return streamer_t{new streamer{rate}}; }
+void deleter::operator()(streamer *s) { delete s; }
 } // namespace siaudio
