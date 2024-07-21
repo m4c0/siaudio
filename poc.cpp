@@ -29,8 +29,14 @@ int main() {
     // Wait
   }
 
-  siaudio::filler(fill_buffer_2);
+  siaudio::rate(0); // Mute
   while (time.millis() < 2000) {
+    // Wait
+  }
+
+  siaudio::filler(fill_buffer_2);
+  siaudio::rate(rate);
+  while (time.millis() < 3000) {
     // Wait
   }
 }

@@ -8,4 +8,6 @@ static siaudio::streamer_t &instance() {
 void (*siaudio::fn)(float *, unsigned) = [](float *, unsigned) {};
 
 void siaudio::filler(void (*fn)(float *, unsigned)) { siaudio::fn = fn; }
-void siaudio::rate(unsigned r) { instance() = siaudio::create(r); }
+void siaudio::rate(unsigned r) {
+  instance() = r == 0 ? streamer_t{} : siaudio::create(r);
+}
