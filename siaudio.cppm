@@ -28,4 +28,6 @@ streamer_t create(unsigned rate);
 #pragma leco add_library ole32
 #elif LECO_TARGET_LINUX
 #pragma leco add_impl linux
+#elif LECO_TARGET_WASM
+#pragma leco add_impl wasm
 #endif

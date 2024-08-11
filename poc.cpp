@@ -1,4 +1,4 @@
-#pragma leco tool
+#pragma leco app
 import siaudio;
 import sitime;
 
@@ -23,6 +23,7 @@ int main() {
   siaudio::filler(fill_buffer);
   siaudio::rate(rate);
 
+#ifndef LECO_TARGET_WASM
   sitime::stopwatch time{};
 
   while (time.millis() < 1000) {
@@ -39,4 +40,5 @@ int main() {
   while (time.millis() < 3000) {
     // Wait
   }
+#endif
 }
