@@ -33,11 +33,11 @@
       audioContext = new AudioContext({ sampleRate: 44100 });
       audioContext.audioWorklet.addModule(url).then(function() {
         const node = new AudioWorkletNode(audioContext, "siaudio");
+        node.port.postMessage(sab_view);
         node.connect(audioContext.destination);
         node.port.onmessage = function() {
           leco_exports.siaudio_fill_buffer();
           sab_view.set(cpp_buffer);
-          node.port.postMessage(sab_view);
         };
       });
 
