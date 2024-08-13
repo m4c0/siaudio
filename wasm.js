@@ -27,7 +27,7 @@
     // AudioContext can only be played on a user interaction
     document.body.addEventListener("click", () => {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
-      const audioContext = new AudioContext();
+      const audioContext = new AudioContext({ sampleRate: 44100 });
       audioContext.audioWorklet.addModule(url).then(function() {
         const node = new AudioWorkletNode(audioContext, "siaudio");
         node.connect(audioContext.destination);
