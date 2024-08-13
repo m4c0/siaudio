@@ -17,6 +17,7 @@
   }
   const blob = new Blob(['(', worker, ')()'], { type: 'text/javascript' });
   const url = URL.createObjectURL(blob);
+  var audioContext = null;
 
   function start(ptr, sz) {
     const cpp_buffer = new Float32Array(leco_exports.memory.buffer, ptr, sz);
@@ -26,8 +27,10 @@
 
     // AudioContext can only be played on a user interaction
     document.body.addEventListener("click", () => {
+      if (audioContext) return;
+      
       const AudioContext = window.AudioContext || window.webkitAudioContext;
-      const audioContext = new AudioContext({ sampleRate: 44100 });
+      audioContext = new AudioContext({ sampleRate: 44100 });
       audioContext.audioWorklet.addModule(url).then(function() {
         const node = new AudioWorkletNode(audioContext, "siaudio");
         node.connect(audioContext.destination);
