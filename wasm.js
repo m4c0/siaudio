@@ -9,8 +9,8 @@
         this.shared_data = e.data;
       }
       process(inputs, outputs, parameters) {
-        this.port.postMessage({});
         if (this.shared_data) outputs[0][0].set(this.shared_data);
+        this.port.postMessage({ currentFrame });
         return true;
       }
     });
