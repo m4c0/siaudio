@@ -21,7 +21,7 @@
   function start(ptr, sz) {
     const cpp_buffer = new Float32Array(leco_exports.memory.buffer, ptr, sz);
 
-    const sab = crossOriginIsolated ? new SharedArrayBuffer(4 * sz) : new ArrayBuffer(4 * sz);
+    const sab = new SharedArrayBuffer(4 * sz);
     const sab_view = new Float32Array(sab);
 
     // AudioContext can only be played on a user interaction
