@@ -2,10 +2,12 @@ export module siaudio;
 import hai;
 
 namespace siaudio {
-export void filler(void (*)(float *, unsigned));
+using fn_t = hai::fn<void, float *, unsigned>;
+
+export void filler(fn_t);
 export void rate(unsigned);
 
-extern void (*fn)(float *, unsigned);
+extern fn_t fn;
 
 class streamer;
 struct deleter {
