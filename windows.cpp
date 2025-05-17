@@ -4,16 +4,16 @@ module;
 
 module siaudio;
 import hai;
+import hay;
 
 namespace siaudio {
-struct destroyer {
-  void operator()(IXAudio2Voice *ptr) { ptr->DestroyVoice(); }
-};
+void destroyer(IXAudio2Voice * ptr) { ptr->DestroyVoice(); }
+template<typename X> using voice = hay<X *, nullptr, destroyer>;
 
 class streamer : public IXAudio2VoiceCallback {
   Microsoft::WRL::ComPtr<IXAudio2> m_xa2{};
-  hai::holder<IXAudio2MasteringVoice, destroyer> m_main_voice{};
-  hai::holder<IXAudio2SourceVoice, destroyer> m_src_voice{};
+  voice<IXAudio2MasteringVoice> m_main_voice { nullptr };
+  voice<IXAudio2SourceVoice   > m_src_voice  { nullptr };
   hai::array<float> m_buffer;
 
 public:
@@ -28,7 +28,7 @@ public:
       return;
     }
 
-    if (FAILED(hr = m_xa2->CreateMasteringVoice(&*m_main_voice))) {
+    if (FAILED(hr = m_xa2->CreateMasteringVoice(m_main_voice))) {
       return;
     }
 
@@ -45,12 +45,11 @@ public:
     wfx.cbSize = 0;
 
     constexpr const auto ratio = XAUDIO2_DEFAULT_FREQ_RATIO;
-    if (FAILED(hr = m_xa2->CreateSourceVoice(&*m_src_voice, &wfx, 0, ratio,
-                                             this))) {
+    if (FAILED(hr = m_xa2->CreateSourceVoice(m_src_voice, &wfx, 0, ratio, this))) {
       return;
     }
 
-    if (FAILED(hr = (*m_src_voice)->Start())) {
+    if (FAILED(hr = m_src_voice->Start())) {
       return;
     }
   }
@@ -72,11 +71,11 @@ public:
         .AudioBytes = BytesRequired,
         .pAudioData = reinterpret_cast<BYTE *>(m_buffer.begin()), // NOLINT
     };
-    (*m_src_voice)->SubmitSourceBuffer(&buf);
+    m_src_voice->SubmitSourceBuffer(&buf);
   }
 
-  void start() { (*m_src_voice)->Start(); }
-  void stop() { (*m_src_voice)->Stop(); }
+  void start() { m_src_voice->Start(); }
+  void stop() { m_src_voice->Stop(); }
 };
 
 streamer_t create(unsigned rate) { return streamer_t{new streamer{rate}}; }
