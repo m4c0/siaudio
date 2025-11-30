@@ -17,5 +17,6 @@ void deleter::operator()(streamer *s) {}
 
 extern "C" void __attribute__((export_name("siaudio_fill_buffer")))
 siaudio_fill_buffer() {
-  siaudio::fn(buffer, desired_buf_size);
+  unsigned n = desired_buf_size;
+  siaudio::fn(buffer, n);
 }
