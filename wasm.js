@@ -7,10 +7,22 @@
       }
       onmessage(e) {
         this.shared_data = e.data;
+        this.current_data = new Float32Array(this.shared_data.length);
+        this.current_window = this.current_data.length;
       }
       process(inputs, outputs, parameters) {
-        if (this.shared_data) outputs[0][0].set(this.shared_data);
-        this.port.postMessage({ currentFrame });
+        if (!this.shared_data) return true;
+
+        if (this.current_window < this.current_data.length) {
+          outputs[0][0].set(this.current_data.subarray(this.current_window, 128));
+          this.current_window += 128;
+        }
+
+        if (this.current_window >= this.current_data.length) {
+          this.current_data.set(this.shared_data);
+          this.current_window = 0;
+          this.port.postMessage({});
+        }
         return true;
       }
     });

@@ -4,7 +4,9 @@ extern "C" void __attribute__((import_module("siaudio"), import_name("start")))
 siaudio_start(void *, unsigned);
 
 // TODO: receive this from JS. "128" is the expected standard, but who knows?
-static constexpr const unsigned desired_buf_size = 128;
+static constexpr const unsigned js_window_size = 128;
+static constexpr const unsigned js_window_count = 4; // Enough to allow some JS events
+static constexpr const unsigned desired_buf_size = js_window_size * js_window_count;
 static float buffer[desired_buf_size] {};
 
 namespace siaudio {
